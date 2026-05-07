@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>每月目標追蹤</title>
+<style>
+:root{
+  --bg:#f2f6fb;--white:#fff;--border:#dde5f0;--text:#1a2233;
+  --muted:#7b8ca6;--hint:#bbc8da;
+  --a:#2e9cf5;--a-light:#e6f3fe;--a-mid:#aed5fa;
+  --b:#7c5cfc;--b-light:#eeebff;--b-mid:#c9bcfd;
+  --ok:#15b870;--ok-light:#e2f9ef;
+  --warn:#f59e0b;--warn-light:#fff7e6;
+  --danger:#f04e5e;--danger-light:#ffeef0;
+  --r:14px;--rs:10px;--sh:0 2px 10px rgba(50,80,140,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,"Noto Sans TC",sans-serif;font-size:15px;min-height:100vh;padding-bottom:48px;}
+
+/* HEADER */
+.hdr{background:var(--white);padding:22px 18px 16px;border-bottom:1px solid var(--border);}
+.hdr-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:19px;font-weight:700;letter-spacing:-.3px;}
+.h-date{font-size:12px;color:var(--muted);margin-top:3px;}
+.chip{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:6px 14px;text-align:center;}
+.chip-pct{font-size:17px;font-weight:700;display:block;}
+.chip-lbl{font-size:10px;color:var(--muted);}
+.tbar-bg{height:6px;background:var(--border);border-radius:3px;position:relative;overflow:visible;}
+.tbar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#a8d5fb,var(--a));}
+.tdot{position:absolute;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:var(--a);border:3px solid var(--white);box-shadow:0 0 0 1.5px var(--a);}
+.tlbls{display:flex;justify-content:space-between;font-size:11px;color:var(--hint);margin-top:5px;}
+
+/* SUMMARY */
+.summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 14px 0;}
+.scard{background:var(--white);border:1px solid var(--border);border-radius:var(--rs);padding:12px 8px;text-align:center;box-shadow:var(--sh);transition:background .3s,border-color .3s;}
+.scard.act-a{background:var(--a);border-color:var(--a);}
+.scard.act-b{background:var(--b);border-color:var(--b);}
+.sval{font-size:20px;font-weight:700;color:var(--text);}
+.slbl{font-size:11px;color:var(--muted);margin-top:3px;}
+.scard.act-a .sval,.scard.act-a .slbl,.scard.act-b .sval,.scard.act-b .slbl{color:#fff;}
+
+/* ZONE */
+.zone{margin:12px 14px 0;background:var(--white);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;border:1.5px solid var(--border);}
+.zone-a{border-color:var(--a-mid);}
+.zone-b{border-color:var(--b-mid);}
+.zhead{display:flex;align-items:center;gap:10px;padding:13px 15px 11px;}
+.zone-a .zhead{background:var(--a-light);}
+.zone-b .zhead{background:var(--b-light);}
+.zbadge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0;}
+.zone-a .zbadge{background:var(--a);color:#fff;}
+.zone-b .zbadge{background:var(--b);color:#fff;}
+.zinfo{flex:1;}
+.zname{font-size:14px;font-weight:700;}
+.zone-a .zname{color:var(--a);}
+.zone-b .zname{color:var(--b);}
+.zdesc{font-size:11px;color:var(--muted);margin-top:2px;}
+.zpill{font-size:11px;font-weight:600;padding:4px 11px;border-radius:20px;}
+.pill-ok{background:var(--ok-light);color:var(--ok);}
+.pill-warn{background:var(--warn-light);color:var(--warn);}
+.pill-danger{background:var(--danger-light);color:var(--danger);}
+
+/* ITEMS */
+.items{border-top:1px solid var(--border);}
+.gitem{border-bottom:1px solid var(--border);}
+.gitem:last-child{border-bottom:none;}
+.irow{display:flex;align-items:center;gap:11px;padding:12px 15px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:background .15s;}
+.irow:active{background:var(--bg);}
+.circ{width:23px;height:23px;border-radius:50%;border:2px solid var(--hint);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;}
+.circ.done{background:var(--ok-light);border-color:var(--ok);color:var(--ok);}
+.ibody{flex:1;min-width:0;}
+.iname{font-size:14px;font-weight:500;}
+.iunit{font-size:11px;color:var(--muted);margin-top:2px;}
+.iright{text-align:right;flex-shrink:0;}
+.icnt{font-size:16px;font-weight:700;}
+.icnt small{font-size:11px;font-weight:400;color:var(--muted);}
+.ipct{font-size:11px;color:var(--muted);margin-top:2px;}
+.prow{padding:0 15px 9px;}
+.pbg{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.pfill{height:100%;border-radius:3px;transition:width .4s ease;}
+.zone-a .pfill{background:linear-gradient(90deg,var(--a-mid),var(--a));}
+.zone-b .pfill{background:linear-gradient(90deg,var(--b-mid),var(--b));}
+.pfill.done{background:linear-gradient(90deg,#6edbb8,var(--ok))!important;}
+
+/* EDIT */
+.epanel{display:none;background:var(--bg);border-top:1px dashed var(--border);padding:13px 15px;}
+.epanel.open{display:block;}
+.ehint{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.addrow{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.ainput{flex:1;height:42px;background:var(--white);border:1.5px solid var(--border);border-radius:var(--rs);font-size:20px;font-weight:600;color:var(--text);padding:0 12px;outline:none;-webkit-appearance:none;font-family:inherit;}
+.ainput:focus{border-color:var(--a);}
+.zone-b .ainput:focus{border-color:var(--b);}
+.abtn{height:42px;padding:0 18px;border:none;border-radius:var(--rs);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
+.abtn:active{opacity:.8;}
+.btn-a{background:var(--a);color:#fff;}
+.btn-b{background:var(--b);color:#fff;}
+.divider{font-size:11px;color:var(--hint);text-align:center;margin-bottom:8px;}
+.fixrow{display:flex;gap:8px;align-items:center;}
+.finput{flex:1;height:34px;background:var(--white);border:1px solid var(--border);border-radius:var(--rs);font-size:14px;color:var(--text);padding:0 10px;outline:none;-webkit-appearance:none;font-family:inherit;}
+.flbl{font-size:11px;color:var(--hint);white-space:nowrap;}
+.fbtn{height:34px;padding:0 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:12px;color:var(--muted);background:var(--white);cursor:pointer;font-family:inherit;}
+
+.hint-c{text-align:center;font-size:12px;color:var(--hint);margin-top:14px;}
+.reset-btn{display:block;margin:22px auto 0;background:none;border:1px solid var(--border);border-radius:20px;color:var(--hint);font-size:12px;font-family:inherit;padding:8px 22px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-row">
+    <div>
+      <div class="h-title">每月目標追蹤</div>
+      <div class="h-date" id="dateLabel"></div>
+    </div>
+    <div class="chip">
+      <span class="chip-pct" id="timePct"></span>
+      <span class="chip-lbl">時間已過</span>
+    </div>
+  </div>
+  <div class="tbar-bg">
+    <div class="tbar-fill" id="tbarFill"></div>
+    <div class="tdot" id="tdot"></div>
+  </div>
+  <div class="tlbls">
+    <span>1日</span>
+    <span id="todayLbl"></span>
+    <span id="lastLbl"></span>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="scard"><div class="sval" id="sumRemain"></div><div class="slbl">剩餘天數</div></div>
+  <div class="scard" id="cardA"><div class="sval" id="sumA"></div><div class="slbl">A區達標項</div></div>
+  <div class="scard" id="cardB"><div class="sval" id="sumB"></div><div class="slbl">B區達標項</div></div>
+</div>
+
+<div class="zone zone-a" id="zoneA"></div>
+<div class="zone zone-b" id="zoneB"></div>
+
+<div class="hint-c">點任一項目展開輸入</div>
+<button class="reset-btn" onclick="confirmReset()">重置本月進度</button>
+
+<script>
+var KEY = 'goal_v3';
+var GOALS = {
+  a:[
+    {id:'a1',name:'訪數',unit:'訪',target:50},
+    {id:'a2',name:'新名單',unit:'人',target:10},
+    {id:'a3',name:'件數',unit:'件',target:8},
+    {id:'a4',name:'業績',unit:'萬元',target:4}
+  ],
+  b:[
+    {id:'b1',name:'面談',unit:'人',target:4},
+    {id:'b2',name:'外登',unit:'人',target:1},
+    {id:'b3',name:'報考',unit:'人',target:1},
+    {id:'b4',name:'新名單',unit:'人',target:10}
+  ]
+};
+
+var state = {};
+try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) {}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function getV(id){ return state[id] || 0; }
+
+var now = new Date();
+var y = now.getFullYear(), mo = now.getMonth(), d = now.getDate();
+var dim = new Date(y, mo+1, 0).getDate();
+var tp = Math.round(d / dim * 100);
+var mns = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+document.getElementById('dateLabel').textContent = y+'年'+mns[mo]+'　第'+d+'天';
+document.getElementById('timePct').textContent = tp+'%';
+document.getElementById('tbarFill').style.width = tp+'%';
+document.getElementById('tdot').style.left = tp+'%';
+document.getElementById('todayLbl').textContent = d+'日（今）';
+document.getElementById('lastLbl').textContent = dim+'日';
+document.getElementById('sumRemain').textContent = dim - d;
+
+function pct(c,t){ return t>0 ? Math.min(Math.round(c/t*100),100) : 0; }
+
+function pillInfo(zone){
+  var goals = GOALS[zone];
+  var anyDone = goals.some(function(g){ return getV(g.id) >= g.target; });
+  var best = 0;
+  goals.forEach(function(g){ var p=pct(getV(g.id),g.target); if(p>best) best=p; });
+  if(anyDone) return {cls:'pill-ok', txt:'✓ 已達標'};
+  if(best >= tp-8) return {cls:'pill-warn', txt:'進行中'};
+  return {cls:'pill-danger', txt:'需加速'};
+}
+
+function buildZone(zone){
+  var goals = GOALS[zone];
+  var isA = zone==='a';
+  var el = document.getElementById('zone'+zone.toUpperCase());
+  var pill = pillInfo(zone);
+  var btnCls = isA ? 'btn-a' : 'btn-b';
+
+  var headHtml = '<div class="zhead">'
+    +'<div class="zbadge">'+zone.toUpperCase()+'</div>'
+    +'<div class="zinfo">'
+    +'<div class="zname">'+(isA?'A 區目標':'B 區目標')+'</div>'
+    +'<div class="zdesc">達到任一項即達標</div>'
+    +'</div>'
+    +'<div class="zpill '+pill.cls+'" id="pill_'+zone+'">'+pill.txt+'</div>'
+    +'</div>'
+    +'<div class="items" id="items_'+zone+'"></div>';
+  el.innerHTML = headHtml;
+
+  var container = document.getElementById('items_'+zone);
+  goals.forEach(function(g){
+    var cur = getV(g.id);
+    var p = pct(cur, g.target);
+    var done = cur >= g.target;
+
+    var div = document.createElement('div');
+    div.className = 'gitem';
+    div.id = 'gi_'+g.id;
+    div.innerHTML =
+      '<div class="irow" onclick="toggleEdit(\''+g.id+'\')">'
+        +'<div class="circ'+(done?' done':'')+'" id="chk_'+g.id+'">'+(done?'✓':'')+'</div>'
+        +'<div class="ibody">'
+          +'<div class="iname">'+g.name+'</div>'
+          +'<div class="iunit">目標 '+g.target+' '+g.unit+'</div>'
+        +'</div>'
+        +'<div class="iright">'
+          +'<div class="icnt" id="cnt_'+g.id+'">'+cur+' <small>'+g.unit+'</small></div>'
+          +'<div class="ipct" id="pct_'+g.id+'">'+p+'%</div>'
+        +'</div>'
+      +'</div>'
+      +'<div class="prow"><div class="pbg"><div class="pfill'+(done?' done':'')+'" id="fill_'+g.id+'" style="width:'+p+'%"></div></div></div>'
+      +'<div class="epanel" id="ep_'+g.id+'">'
+        +'<div class="ehint">➕ 這次新增幾個？（自動累加）</div>'
+        +'<div class="addrow">'
+          +'<input class="ainput" type="number" id="add_'+g.id+'" min="0" placeholder="0" inputmode="numeric">'
+          +'<button class="abtn '+btnCls+'" onclick="addItem(event,\''+g.id+'\','+g.target+',\''+g.unit+'\',\''+zone+'\')">加入</button>'
+        +'</div>'
+        +'<div class="divider">── 或直接修正總數 ──</div>'
+        +'<div class="fixrow">'
+          +'<input class="finput" type="number" id="fix_'+g.id+'" min="0" value="'+cur+'" inputmode="numeric">'
+          +'<span class="flbl">'+g.unit+'</span>'
+          +'<button class="fbtn" onclick="fixItem(event,\''+g.id+'\','+g.target+',\''+g.unit+'\',\''+zone+'\')">更新</button>'
+        +'</div>'
+      +'</div>';
+    container.appendChild(div);
+  });
+}
+
+function toggleEdit(id){
+  var ep = document.getElementById('ep_'+id);
+  var isOpen = ep.classList.contains('open');
+  document.querySelectorAll('.epanel.open').forEach(function(e){ e.classList.remove('open'); });
+  if(!isOpen){
+    ep.classList.add('open');
+    setTimeout(function(){ var inp=document.getElementById('add_'+id); if(inp) inp.focus(); }, 80);
+  }
+}
+
+function addItem(e, id, target, unit, zone){
+  e.stopPropagation();
+  var inp = document.getElementById('add_'+id);
+  var addVal = parseFloat(inp.value) || 0;
+  if(addVal <= 0){ inp.focus(); return; }
+  var newVal = getV(id) + addVal;
+  state[id] = newVal;
+  save();
+  inp.value = '';
+  document.getElementById('fix_'+id).value = newVal;
+  refreshItem(id, target, unit, zone);
+}
+
+function fixItem(e, id, target, unit, zone){
+  e.stopPropagation();
+  var val = parseFloat(document.getElementById('fix_'+id).value) || 0;
+  state[id] = val;
+  save();
+  document.getElementById('add_'+id).value = '';
+  refreshItem(id, target, unit, zone);
+}
+
+function refreshItem(id, target, unit, zone){
+  var cur = getV(id);
+  var p = pct(cur, target);
+  var done = cur >= target;
+  document.getElementById('cnt_'+id).innerHTML = cur+' <small>'+unit+'</small>';
+  document.getElementById('pct_'+id).textContent = p+'%';
+  var fill = document.getElementById('fill_'+id);
+  fill.style.width = p+'%';
+  fill.className = 'pfill'+(done?' done':'');
+  var chk = document.getElementById('chk_'+id);
+  chk.className = 'circ'+(done?' done':'');
+  chk.textContent = done ? '✓' : '';
+  updatePill(zone);
+  updateSummary();
+}
+
+function updatePill(zone){
+  var pill = pillInfo(zone);
+  var el = document.getElementById('pill_'+zone);
+  el.className = 'zpill '+pill.cls;
+  el.textContent = pill.txt;
+}
+
+function updateSummary(){
+  ['a','b'].forEach(function(zone){
+    var done = GOALS[zone].filter(function(g){ return getV(g.id) >= g.target; }).length;
+    var anyDone = done > 0;
+    document.getElementById('sum'+zone.toUpperCase()).textContent = done;
+    var card = document.getElementById('card'+zone.toUpperCase());
+    card.className = 'scard' + (anyDone ? (zone==='a' ? ' act-a' : ' act-b') : '');
+  });
+}
+
+function confirmReset(){
+  if(confirm('確定要重置所有進度嗎？')){
+    localStorage.removeItem(KEY);
+    location.reload();
+  }
+}
+
+buildZone('a');
+buildZone('b');
+updateSummary();
+</script>
+</body>
+</html>
